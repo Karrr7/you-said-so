@@ -49,13 +49,13 @@ export async function POST(request: NextRequest) {
 
   const db = createServiceClient()
 
-  const { data: prediction } = await db
+  const { data: prediction, error: predictionError } = await db
     .from('predictions')
     .select('status')
     .eq('id', prediction_id)
     .single()
 
-  if (!prediction || prediction.status !== 'community_vote') {
+  if (predictionError || !prediction || prediction.status !== 'community_vote') {
     return NextResponse.json({ error: 'prediction is not accepting votes' }, { status: 409 })
   }
 
@@ -68,10 +68,12 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  const { data: updated } = await db
+  const { data: updated, error: updatedError } = await db
     .from('votes')
     .select('choice')
     .eq('prediction_id', prediction_id)
+
+  if (updatedError) return NextResponse.json({ error: updatedError.message }, { status: 500 })
 
   const rows = updated ?? []
   return NextResponse.json({
