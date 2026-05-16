@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { routing } from '@/i18n/routing'
+import NavBar from '@/components/NavBar'
 
 interface Props {
   children: React.ReactNode
@@ -18,6 +19,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   return (
     <NextIntlClientProvider messages={messages}>
+      <NavBar locale={locale} />
       <main className="max-w-2xl mx-auto px-4 pt-6 pb-20">
         {children}
       </main>
