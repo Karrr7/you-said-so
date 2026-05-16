@@ -43,12 +43,12 @@ describe('PredictionCard', () => {
 
   it('shows 嘴炮 stamp when verdict is bullshit', () => {
     render(<PredictionCard prediction={{ ...basePrediction, status: 'resolved', verdict: 'bullshit' }} />)
-    expect(screen.getByText(/嘴炮/)).toBeInTheDocument()
+    expect(screen.getByTestId('verdict-stamp')).toHaveTextContent('嘴炮')
   })
 
   it('shows 準了 stamp when verdict is correct', () => {
     render(<PredictionCard prediction={{ ...basePrediction, status: 'resolved', verdict: 'correct' }} />)
-    expect(screen.getByText(/準了/)).toBeInTheDocument()
+    expect(screen.getByTestId('verdict-stamp')).toHaveTextContent('準了')
   })
 
   it('shows vote bar when status is community_vote', () => {
@@ -62,6 +62,6 @@ describe('PredictionCard', () => {
 
   it('shows no stamp when status is active', () => {
     render(<PredictionCard prediction={basePrediction} />)
-    expect(screen.queryByText(/嘴炮|準了/)).toBeNull()
+    expect(screen.queryByTestId('verdict-stamp')).toBeNull()
   })
 })

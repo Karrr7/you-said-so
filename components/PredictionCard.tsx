@@ -1,7 +1,7 @@
 // components/PredictionCard.tsx
 import Link from 'next/link'
 import type { PredictionWithRelations } from '@/lib/types'
-import { formatDeadline, votePct } from '@/lib/utils'
+import { scoreLabel, formatDeadline, votePct } from '@/lib/utils'
 
 interface Props {
   prediction: PredictionWithRelations
@@ -59,12 +59,12 @@ export default function PredictionCard({ prediction }: Props) {
 
               {/* Verdict stamp */}
               {isBullshit && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 -rotate-[8deg] text-[11px] font-black text-red-500 border-[2.5px] border-red-500 rounded-[4px] px-2 py-0.5 bg-red-500/[0.08] whitespace-nowrap pointer-events-none">
+                <span data-testid="verdict-stamp" className="absolute right-3 top-1/2 -translate-y-1/2 -rotate-[8deg] text-[11px] font-black text-red-500 border-[2.5px] border-red-500 rounded-[4px] px-2 py-0.5 bg-red-500/[0.08] whitespace-nowrap pointer-events-none">
                   💨 嘴炮
                 </span>
               )}
               {isCorrect && (
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 -rotate-[8deg] text-[11px] font-black text-green-600 border-[2.5px] border-green-600 rounded-[4px] px-2 py-0.5 bg-green-600/[0.08] whitespace-nowrap pointer-events-none">
+                <span data-testid="verdict-stamp" className="absolute right-3 top-1/2 -translate-y-1/2 -rotate-[8deg] text-[11px] font-black text-green-600 border-[2.5px] border-green-600 rounded-[4px] px-2 py-0.5 bg-green-600/[0.08] whitespace-nowrap pointer-events-none">
                   🎯 準了
                 </span>
               )}
@@ -77,6 +77,9 @@ export default function PredictionCard({ prediction }: Props) {
           <Link href={`/${locale}/predictors/${predictor.slug}`} className="font-bold text-[#e6edf3] hover:underline">
             {predictor.name}
           </Link>
+          <span className={predictor.bullshit_score > 50 ? 'text-red-400 font-semibold' : 'text-green-400 font-semibold'}>
+            {scoreLabel(predictor.bullshit_score, predictor.accuracy_rate)}
+          </span>
           <span className="text-[#21262d]">·</span>
           <StatusTag status={status} verdict={verdict} />
           <span className="text-[#21262d]">·</span>
