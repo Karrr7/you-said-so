@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
       deadline: deadline!,
       category: category as Category,
       verdict_type: 'subjective',
+      submitted_by: userId,
       status: 'pending_review',
       verdict: null,
     })
