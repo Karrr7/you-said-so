@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { createReadClient } from '@/lib/supabase'
 import { formatDeadline, scoreLabel } from '@/lib/utils'
 import type { Metadata } from 'next'
+import VoteBar from '@/components/VoteBar'
 
-export const revalidate = false
-export const dynamic = 'force-static'
+export const revalidate = 3600
 
 interface Props {
   params: Promise<{ locale: string; slug: string }>
@@ -39,7 +39,7 @@ export default async function PredictionDetailPage({ params }: Props) {
   const correct = (votes ?? []).filter(v => v.choice === 'correct').length
   const bullshit = (votes ?? []).filter(v => v.choice === 'bullshit').length
   const total = correct + bullshit
-  const pct = total > 0 ? Math.round(bullshit / total * 100) : 0
+  const pct = total > 0 ? Math.round(bullshit / total * 100) : 50
 
   const predictor = prediction.predictor
 
@@ -98,8 +98,16 @@ export default async function PredictionDetailPage({ params }: Props) {
         <div className="flex justify-between"><span className="text-[#6e7681]">狀態</span><span className="font-medium">{prediction.status}</span></div>
       </div>
 
-      {/* Vote bar */}
-      {total > 0 && (
+      {/* Voting — community_vote predictions only */}
+      {prediction.status === 'community_vote' && (
+        <VoteBar
+          predictionId={prediction.id}
+          initialCounts={{ correct, bullshit }}
+        />
+      )}
+
+      {/* Read-only vote result — resolved predictions */}
+      {prediction.status === 'resolved' && total > 0 && (
         <div className="bg-[#161b22] border border-[#21262d] rounded-xl p-4 mb-4">
           <div className="flex justify-between text-xs mb-2">
             <span className="text-red-400 font-semibold">嘴炮 {pct}%（{bullshit} 票）</span>
