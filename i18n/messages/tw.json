@@ -1,0 +1,28 @@
+{
+  "nav": {
+    "leaderboard": "排行榜",
+    "submit": "提交預言",
+    "login": "登入",
+    "logout": "登出"
+  },
+  "feed": {
+    "todayResults": "今日結果",
+    "ongoing": "進行中",
+    "empty": "今天還沒有結果，等等看"
+  },
+  "verdict": {
+    "correct": "準了",
+    "bullshit": "嘴炮",
+    "pending": "進行中",
+    "voting": "投票中"
+  },
+  "category": {
+    "stock": "台股",
+    "politics": "政治",
+    "fortune": "命理",
+    "tech": "科技",
+    "sports": "球賽",
+    "ai": "AI",
+    "other": "其他"
+  }
+}
