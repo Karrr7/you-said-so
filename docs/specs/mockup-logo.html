@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YouSaidSo — Logo Mockup</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Noto+Sans+TC:wght@700;900&family=Inter:wght@700;900&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d1117;
+    font-family: 'Inter', sans-serif;
+    padding: 48px 24px 80px;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+
+  .page { max-width: 860px; margin: 0 auto; position: relative; }
+
+  h1 { font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #3b82f6; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: #6e7681; margin-bottom: 48px; }
+
+  /* Section */
+  .section { margin-bottom: 56px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; color: #6e7681;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: #21262d; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+  /* Card */
+  .card {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .card-label {
+    font-size: 11px; color: #6e7681; font-weight: 500;
+    text-align: center;
+  }
+
+  /* ── SVG WOBBLE FILTER ── */
+  .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+  /* ── LOGO A: Bubble with English ── */
+  .logo-a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bubble-logo {
+    position: relative;
+    background: #fffef0;
+    border: 4px solid #0a0c10;
+    border-radius: 28px;
+    padding: 14px 28px 14px 28px;
+    filter: url(#wobble-logo);
+  }
+
+  /* tail pointing bottom-left */
+  .bubble-logo::before {
+    content: '';
+    position: absolute;
+    bottom: -18px;
+    left: 28px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 18px 10px 0 0;
+    border-color: #0a0c10 transparent transparent transparent;
+  }
+  .bubble-logo::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 31px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 12px 7px 0 0;
+    border-color: #fffef0 transparent transparent transparent;
+  }
+
+  .logo-text-en {
+    font-family: 'Bangers', cursive;
+    font-size: 38px;
+    letter-spacing: 2px;
+    color: #0a0c10;
+    line-height: 1;
+  }
+
+  .logo-shadow {
+    position: absolute;
+    top: 6px; left: 6px;
+    background: #f5a623;
+    border: 4px solid #0a0c10;
+    border-radius: 28px;
+    padding: 14px 28px;
+    z-index: -1;
+  }
+  .logo-shadow-text {
+    font-family: 'Bangers', cursive;
+    font-size: 38px;
+    letter-spacing: 2px;
+    color: transparent;
+    line-height: 1;
+  }
+
+  /* ── LOGO B: Bilingual stacked ── */
+  .logo-b-bubble {
+    position: relative;
+    background: #fffef0;
+    border: 4px solid #0a0c10;
+    border-radius: 28px;
+    padding: 12px 24px 14px;
+    filter: url(#wobble-logo);
+    text-align: center;
+  }
+  .logo-b-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -18px;
+    left: 24px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 18px 10px 0 0;
+    border-color: #0a0c10 transparent transparent transparent;
+  }
+  .logo-b-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 27px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 12px 7px 0 0;
+    border-color: #fffef0 transparent transparent transparent;
+  }
+  .logo-b-en {
+    font-family: 'Bangers', cursive;
+    font-size: 32px;
+    letter-spacing: 2px;
+    color: #0a0c10;
+    line-height: 1;
+    display: block;
+  }
+  .logo-b-zh {
+    font-family: 'Noto Sans TC', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 0.05em;
+    display: block;
+    margin-top: 2px;
+  }
+
+  /* ── LOGO C: Dark bubble ── */
+  .logo-c-bubble {
+    position: relative;
+    background: #0a0c10;
+    border: 4px solid #fffef0;
+    border-radius: 28px;
+    padding: 14px 28px;
+    filter: url(#wobble-logo);
+    box-shadow: 5px 5px 0 0 #f5a623, 5px 5px 0 2px #0a0c10;
+  }
+  .logo-c-bubble::before {
+    content: '';
+    position: absolute;
+    bottom: -18px;
+    left: 28px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 18px 10px 0 0;
+    border-color: #fffef0 transparent transparent transparent;
+  }
+  .logo-c-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 31px;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 12px 7px 0 0;
+    border-color: #0a0c10 transparent transparent transparent;
+  }
+  .logo-c-text {
+    font-family: 'Bangers', cursive;
+    font-size: 38px;
+    letter-spacing: 2px;
+    color: #fffef0;
+    line-height: 1;
+  }
+
+  /* ── LOGO D: Minimal text ── */
+  .logo-d {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .logo-d-en {
+    font-family: 'Bangers', cursive;
+    font-size: 42px;
+    letter-spacing: 1px;
+    color: #fffef0;
+    line-height: 1;
+  }
+  .logo-d-dot {
+    font-family: 'Bangers', cursive;
+    font-size: 42px;
+    color: #f5a623;
+    line-height: 1;
+  }
+
+  /* ── FAVICON PREVIEW ── */
+  .favicon-row {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    padding: 16px;
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+  }
+  .favicon-box {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .fav {
+    background: #fffef0;
+    border: 2.5px solid #0a0c10;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bangers', cursive;
+    color: #0a0c10;
+    font-weight: 900;
+    box-shadow: 2px 2px 0 #f5a623, 2px 2px 0 1px #0a0c10;
+  }
+  .fav-label { font-size: 10px; color: #6e7681; }
+
+  /* ── USAGE PREVIEW ── */
+  .navbar-preview {
+    background: #161b22;
+    border: 1px solid #21262d;
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .nav-fav {
+    width: 28px; height: 28px;
+    background: #fffef0;
+    border: 2px solid #0a0c10;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bangers', cursive;
+    font-size: 14px;
+    color: #0a0c10;
+    box-shadow: 2px 2px 0 #f5a623, 2px 2px 0 0.5px #0a0c10;
+    flex-shrink: 0;
+  }
+  .nav-name {
+    font-family: 'Bangers', cursive;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: #e6edf3;
+    line-height: 1;
+  }
+  .nav-zh {
+    font-size: 11px;
+    color: #6e7681;
+    font-weight: 500;
+    margin-top: 1px;
+  }
+  .nav-links {
+    display: flex; gap: 20px;
+    font-size: 13px; color: #6e7681;
+  }
+  .nav-btn {
+    background: #fffef0;
+    border: 2px solid #0a0c10;
+    border-radius: 6px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #0a0c10;
+    box-shadow: 2px 2px 0 #f5a623, 2px 2px 0 0.5px #0a0c10;
+    cursor: pointer;
+  }
+
+</style>
+</head>
+<body>
+
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="wobble-logo" x="-6%" y="-10%" width="116%" height="128%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="4" seed="9"/>
+      <feDisplacementMap in="SourceGraphic" scale="2.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="page">
+
+  <h1>YouSaidSo · 你說的哦</h1>
+  <p class="sub">Logo Mockup — 三個方向，兩個使用場景</p>
+
+  <!-- Logo Variants -->
+  <div class="section">
+    <div class="section-label">Logo 方向</div>
+    <div class="grid">
+
+      <!-- A: White bubble, English only -->
+      <div class="card">
+        <div style="position:relative; padding-bottom:24px;">
+          <div style="position:absolute; top:6px; left:6px; background:#f5a623; border:4px solid #0a0c10; border-radius:28px; padding:14px 28px; z-index:0;">
+            <span style="font-family:'Bangers',cursive;font-size:38px;letter-spacing:2px;color:transparent;line-height:1;">YouSaidSo</span>
+          </div>
+          <div class="bubble-logo" style="position:relative;z-index:1;">
+            <span class="logo-text-en">YouSaidSo</span>
+          </div>
+        </div>
+        <div class="card-label">
+          <strong style="color:#e6edf3;">A · 白泡泡 · 英文</strong><br>
+          乾淨、國際感、pop-art shadow<br>漫畫感最強
+        </div>
+      </div>
+
+      <!-- B: Bilingual -->
+      <div class="card">
+        <div style="position:relative; padding-bottom:24px;">
+          <div style="position:absolute; top:5px; left:5px; background:#f5a623; border:4px solid #0a0c10; border-radius:28px; padding:12px 24px 14px; z-index:0; text-align:center;">
+            <span style="font-family:'Bangers',cursive;font-size:32px;letter-spacing:2px;color:transparent;display:block;">YouSaidSo</span>
+            <span style="font-size:13px;color:transparent;display:block;">你說的哦</span>
+          </div>
+          <div class="logo-b-bubble" style="position:relative;z-index:1;">
+            <span class="logo-b-en">YouSaidSo</span>
+            <span class="logo-b-zh">你說的哦</span>
+          </div>
+        </div>
+        <div class="card-label">
+          <strong style="color:#e6edf3;">B · 雙語版</strong><br>
+          英文主、中文副標<br>台灣用戶秒懂，國際感同時保留
+        </div>
+      </div>
+
+      <!-- C: Dark bubble -->
+      <div class="card">
+        <div style="position:relative; padding-bottom:24px;">
+          <div class="logo-c-bubble" style="position:relative;z-index:1;">
+            <span class="logo-c-text">YouSaidSo</span>
+          </div>
+        </div>
+        <div class="card-label">
+          <strong style="color:#e6edf3;">C · 深色泡泡</strong><br>
+          深色系，黃色 shadow<br>跟深色 UI 融合感更好
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Favicon -->
+  <div class="section">
+    <div class="section-label">Favicon（各尺寸）</div>
+    <div class="favicon-row">
+      <div class="favicon-box">
+        <div class="fav" style="width:64px;height:64px;font-size:32px;border-radius:14px;border-width:3px;">Y</div>
+        <span class="fav-label">64px</span>
+      </div>
+      <div class="favicon-box">
+        <div class="fav" style="width:48px;height:48px;font-size:24px;border-radius:10px;border-width:2.5px;">Y</div>
+        <span class="fav-label">48px</span>
+      </div>
+      <div class="favicon-box">
+        <div class="fav" style="width:32px;height:32px;font-size:16px;border-radius:7px;border-width:2px;">Y</div>
+        <span class="fav-label">32px</span>
+      </div>
+      <div class="favicon-box">
+        <div class="fav" style="width:16px;height:16px;font-size:9px;border-radius:4px;border-width:1.5px;">Y</div>
+        <span class="fav-label">16px</span>
+      </div>
+      <div style="width:1px;height:40px;background:#21262d;"></div>
+      <!-- Bubble favicon variant -->
+      <div class="favicon-box">
+        <div style="width:64px;height:64px;border-radius:14px;background:#fffef0;border:3px solid #0a0c10;box-shadow:3px 3px 0 #f5a623, 3px 3px 0 1px #0a0c10;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
+          <span style="font-family:'Bangers',cursive;font-size:20px;color:#0a0c10;letter-spacing:0.5px;line-height:1;">YSS</span>
+        </div>
+        <span class="fav-label">YSS 版</span>
+      </div>
+      <div class="favicon-box">
+        <div style="width:32px;height:32px;border-radius:7px;background:#fffef0;border:2px solid #0a0c10;box-shadow:2px 2px 0 #f5a623, 2px 2px 0 0.5px #0a0c10;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:'Bangers',cursive;font-size:13px;color:#0a0c10;letter-spacing:0;">YSS</span>
+        </div>
+        <span class="fav-label">32px</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar usage preview -->
+  <div class="section">
+    <div class="section-label">Nav Bar 使用情境（B 方案）</div>
+    <div class="navbar-preview">
+      <div class="nav-logo">
+        <div class="nav-fav">Y</div>
+        <div>
+          <div class="nav-name">YouSaidSo</div>
+          <div class="nav-zh">你說的哦</div>
+        </div>
+      </div>
+      <div class="nav-links">
+        <span>排行榜</span>
+        <span>分類</span>
+        <span>提交預言</span>
+      </div>
+      <button class="nav-btn">登入</button>
+    </div>
+  </div>
+
+  <!-- OG card preview -->
+  <div class="section">
+    <div class="section-label">OG 分享圖預覽</div>
+    <div style="background:#0d1117;border:3px solid #0a0c10;border-radius:16px;overflow:hidden;max-width:480px;box-shadow:5px 5px 0 #f5a623, 5px 5px 0 2px #0a0c10;">
+      <!-- OG card header bar -->
+      <div style="background:#161b22;padding:12px 16px;border-bottom:2px solid #0a0c10;display:flex;align-items:center;gap:8px;">
+        <div style="width:22px;height:22px;background:#fffef0;border:2px solid #0a0c10;border-radius:5px;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:'Bangers',cursive;font-size:11px;color:#0a0c10;">Y</span>
+        </div>
+        <span style="font-family:'Bangers',cursive;font-size:16px;color:#e6edf3;letter-spacing:1px;">YouSaidSo</span>
+        <span style="font-size:10px;color:#6e7681;margin-left:4px;">你說的哦</span>
+      </div>
+      <!-- OG card body -->
+      <div style="padding:20px 18px;">
+        <div style="font-size:11px;color:#6e7681;margin-bottom:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;">股癌 Gooaye · 嘴炮 62%</div>
+        <div style="position:relative;background:#fffef0;border:3px solid #0a0c10;border-radius:16px;padding:12px 16px 12px 16px;margin-bottom:14px;box-shadow:4px 4px 0 #f5a623, 4px 4px 0 1.5px #0a0c10;">
+          <span style="font-size:15px;font-weight:700;color:#0a0c10;line-height:1.5;font-family:'Noto Sans TC',sans-serif;">「比特幣在今年 3 月就會破 10 萬美金」</span>
+          <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%) rotate(-8deg);font-size:12px;font-weight:900;color:#ef4444;border:2.5px solid #ef4444;border-radius:4px;padding:2px 8px;background:rgba(239,68,68,0.08);white-space:nowrap;">💨 嘴炮</span>
+        </div>
+        <div style="font-size:11px;color:#6e7681;">yousaidso.tw · 1,243 票 · 2025/03</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

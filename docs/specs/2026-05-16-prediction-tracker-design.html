@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你的預測準嗎？— Design Spec</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #a855f7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 32px 120px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .meta {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .badge-date { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .badge-status { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+
+  /* Sections */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h2::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 20px 0 10px;
+  }
+
+  p { color: #94a3b8; margin-bottom: 12px; }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  ul li {
+    color: #94a3b8;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--border);
+  }
+
+  strong { color: var(--text); font-weight: 600; }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(31,45,69,0.6);
+    color: #94a3b8;
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+
+  /* For tech stack table — first col is label not code */
+  .table-label td:first-child {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* Risk table — both cols normal */
+  .table-risk td:first-child {
+    font-family: 'Inter', sans-serif;
+    color: var(--red);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 12px 0;
+  }
+
+  /* Code block */
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #94a3b8;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(59,130,246,0.08);
+    color: var(--cyan);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(6,182,212,0.15);
+  }
+
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  /* Status flow in code block */
+  .flow-step { color: var(--blue); font-weight: 600; }
+  .flow-ok { color: var(--green); }
+  .flow-bad { color: var(--red); }
+  .flow-wait { color: var(--yellow); }
+
+  /* Info boxes */
+  .info-box {
+    background: rgba(59,130,246,0.06);
+    border: 1px solid rgba(59,130,246,0.2);
+    border-left: 3px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 14px;
+    color: #94a3b8;
+  }
+
+  /* Page cards */
+  .page-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  .page-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .page-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .page-card ul li { font-size: 13px; }
+
+  /* Out-of-scope */
+  .oos-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .oos-tag {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* Source cards */
+  .source-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    margin: 10px 0;
+  }
+
+  .source-card-header {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .source-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    background: rgba(59,130,246,0.1);
+    color: var(--blue);
+    border: 1px solid rgba(59,130,246,0.2);
+  }
+
+  ol {
+    list-style: none;
+    padding: 0;
+    counter-reset: ol-counter;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
+  }
+
+  ol li {
+    counter-increment: ol-counter;
+    display: flex;
+    gap: 10px;
+    color: #94a3b8;
+    font-size: 14px;
+  }
+
+  ol li::before {
+    content: counter(ol-counter);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--blue);
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  hr { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>你的預測準嗎？— Design Spec</h1>
+    <div class="meta">
+      <span class="badge badge-date">2026-05-16</span>
+      <span class="badge badge-status">✓ Approved</span>
+    </div>
+  </div>
+
+  <!-- 產品定位 -->
+  <div class="section">
+    <h2>產品定位</h2>
+    <p>追蹤各路公眾人物的公開預言，以<strong>嘴炮指數</strong>讓一切一翻兩瞪眼。目標是讓使用者每天回來看「今天有哪些預言成真或嘴炮了」，透過自然流量變現 Google AdSense。</p>
+  </div>
+
+  <!-- 平台 -->
+  <div class="section">
+    <h2>平台</h2>
+    <ul>
+      <li><strong>MVP：Web（Next.js 15 App Router）</strong>— SSR 對 SEO 最友善，直通 Google 自然流量</li>
+      <li><strong>後續：iOS App</strong> — 有流量後再做，用推播通知驅動每日回訪</li>
+    </ul>
+    <h3>多市場路由與 URL 結構</h3>
+    <p>URL 以 locale prefix 分流：<code>/tw/</code>、<code>/jp/</code>、<code>/us/</code>。MVP 只啟用 <code>/tw/</code>，新開市場只需在 Source table 新增來源 + next-intl 加語系。Predictor slug 用英文/拼音，Prediction slug 自動組合：<code>[predictor-slug]-[摘要前20字]-[年份]</code>。</p>
+    <div class="table-wrap table-label" style="margin-top:12px;">
+      <table>
+        <thead><tr><th>頁面</th><th>URL 格式</th><th>範例</th></tr></thead>
+        <tbody>
+          <tr><td>首頁 Feed</td><td><code>/[locale]</code></td><td><code>/tw</code></td></tr>
+          <tr><td>預言者頁面</td><td><code>/[locale]/predictors/[slug]</code></td><td><code>/tw/predictors/gooaye</code></td></tr>
+          <tr><td>預言詳細頁</td><td><code>/[locale]/predictions/[slug]</code></td><td><code>/tw/predictions/gooaye-tsmc-1500-2025</code></td></tr>
+          <tr><td>排行榜</td><td><code>/[locale]/leaderboard</code></td><td><code>/tw/leaderboard</code></td></tr>
+          <tr><td>分類瀏覽</td><td><code>/[locale]/categories/[cat]</code></td><td><code>/tw/categories/stock</code></td></tr>
+          <tr><td>提交頁面</td><td><code>/[locale]/submit</code></td><td><code>/tw/submit</code></td></tr>
+          <tr><td>Admin</td><td><code>/admin</code></td><td><code>/admin</code></td></tr>
+          <tr><td>Privacy / ToS</td><td><code>/privacy</code>、<code>/terms</code></td><td><code>/privacy</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 使用者流程 -->
+  <div class="section">
+    <h2>使用者流程</h2>
+    <ul>
+      <li><strong>不需登入</strong>：瀏覽首頁、每日 Feed、預言者頁面、排行榜</li>
+      <li><strong>需要 Google 登入</strong>：投票（準 / 嘴炮）、提交新預言</li>
+    </ul>
+    <p style="margin-top:12px;">降低摩擦最大化流量，登入只在必要時才要求。</p>
+  </div>
+
+  <!-- 核心資料模型 -->
+  <div class="section">
+    <h2>核心資料模型</h2>
+    <div class="info-box" style="margin-bottom:20px;">所有 table 皆有隱含的 <code>id UUID PRIMARY KEY</code>（Supabase 預設），不在各欄位清單中重複列出。子表的 <code>*_id</code> 欄位皆為對應 table 的 <code>id</code> FK。</div>
+
+    <h3>Predictor（預言者）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>name</td><td>名稱（股癌、天機老師、TVBS 民調…）</td></tr>
+          <tr><td>type</td><td>個人名嘴 / 命理宗教 / 政府官員 / 學術研究 / 民調中心 / 媒體機構 / 外媒 / 企業執行長 / AI 系統</td></tr>
+          <tr><td>avatar_url</td><td>頭像</td></tr>
+          <tr><td>category</td><td>主要領域（台股 / 政治 / 命理 / 科技 / 球賽 / 其他）</td></tr>
+          <tr><td>locale</td><td>市場區域（<code>tw</code> / <code>jp</code> / <code>us</code>）</td></tr>
+          <tr><td>wiki_url</td><td>Wikipedia 或 wiki 頁面連結（nullable）</td></tr>
+          <tr><td>youtube_channel_url</td><td>YouTube 頻道連結（nullable）</td></tr>
+          <tr><td>twitter_url</td><td>X / Twitter 個人頁面（nullable）</td></tr>
+          <tr><td>facebook_url</td><td>Facebook 粉專連結（nullable）</td></tr>
+          <tr><td>threads_url</td><td>Threads 帳號連結（nullable）</td></tr>
+          <tr><td>website_url</td><td>個人官網或部落格（nullable）</td></tr>
+          <tr><td>bullshit_score</td><td>嘴炮指數 = 嘴炮次數 / 已判定總數（百分比）</td></tr>
+          <tr><td>accuracy_rate</td><td>準確率 = 準確次數 / 已判定總數</td></tr>
+          <tr><td>total_predictions</td><td>總預言數</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Prediction（預言）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>content</td><td>預言內容（句子，非全文）</td></tr>
+          <tr><td>predictor_id</td><td>預言者</td></tr>
+          <tr><td>locale</td><td>市場區域（<code>tw</code> / <code>jp</code> / <code>us</code>）— 繼承自 predictor，用於 URL routing 和 feed 分流</td></tr>
+          <tr><td>deadline</td><td>預言截止日</td></tr>
+          <tr><td>category</td><td>分類</td></tr>
+          <tr><td>verdict_type</td><td><code>objective</code>（一翻兩瞪眼）/ <code>subjective</code>（模糊型）— 建立時由 Claude 標記</td></tr>
+          <tr><td>status</td><td><code>pending_review</code> → <code>active</code> → <code>community_vote</code> → <code>resolved</code></td></tr>
+          <tr><td>verdict</td><td><code>correct</code> / <code>bullshit</code> / <code>null</code></td></tr>
+          <tr><td>created_at</td><td>建立時間</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0 16px;"><code>source_url</code> / <code>source_snapshot</code> / <code>source_name</code> 已移至 <code>PredictionSource</code> table；回應移至 <code>PredictionResponse</code> table。</p>
+
+    <h3>PredictionSource（預言來源）</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">同一則預言可對應多個來源——不同媒體報導同一預言時自動 merge，attribution 更完整。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>prediction_id</td><td>對應預言</td></tr>
+          <tr><td>source_url</td><td>原始連結</td></tr>
+          <tr><td>source_name</td><td>來源名稱（Yahoo 新聞 / YouTube / PTT…）</td></tr>
+          <tr><td>source_snapshot</td><td>抓取當下的文字快照（防連結失效）</td></tr>
+          <tr><td>discovered_at</td><td>此來源被發現的時間</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>PredictionResponse（預言者回應）</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">判定後預言者的事後說明或辯護，可有多筆（不同時間、不同媒體）。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>prediction_id</td><td>對應預言</td></tr>
+          <tr><td>content</td><td>回應內容摘要</td></tr>
+          <tr><td>source_url</td><td>回應來源連結（採訪、貼文、聲明等）</td></tr>
+          <tr><td>source_name</td><td>來源名稱（ETtoday 採訪、Twitter 貼文…）</td></tr>
+          <tr><td>responded_at</td><td>回應發佈時間</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Source（爬蟲來源設定）</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">新開市場只需在此 table 新增 row，不改程式碼。</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>locale</td><td>市場區域（<code>tw</code> / <code>jp</code> / <code>us</code>）</td></tr>
+          <tr><td>type</td><td><code>rss</code> / <code>youtube_channel</code></td></tr>
+          <tr><td>name</td><td>來源名稱（Yahoo 新聞 TW、CNN、NHK…）</td></tr>
+          <tr><td>url_or_channel_id</td><td>RSS URL 或 YouTube Channel ID</td></tr>
+          <tr><td>active</td><td>是否啟用</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Vote（投票）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>欄位</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>prediction_id</td><td>對應預言</td></tr>
+          <tr><td>user_id</td><td>投票者</td></tr>
+          <tr><td>choice</td><td><code>correct</code> / <code>bullshit</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 內容來源 -->
+  <div class="section">
+    <h2>內容來源</h2>
+
+    <div class="source-card">
+      <div class="source-card-header">自動爬蟲（Vercel Cron）<span class="source-tag">auto</span></div>
+      <h3 style="font-size:13px;color:var(--muted);margin-top:0;margin-bottom:8px;">RSS Feed（每 4-6 小時）</h3>
+      <ul>
+        <li>Yahoo 新聞 RSS</li>
+        <li>ETtoday RSS</li>
+        <li>其他提供 RSS 的新聞台</li>
+        <li>處理：抓標題 + 摘要 → Claude 判斷是否含預言 → 萃取預言句子 + 截止日</li>
+      </ul>
+      <h3 style="font-size:13px;color:var(--muted);margin-top:16px;margin-bottom:8px;">YouTube 頻道清單（每日一次）</h3>
+      <ul>
+        <li>維護一份策展頻道清單（財經名嘴、政治評論、命理師等約 50 個頻道）</li>
+        <li>抓新影片字幕 → Claude 萃取預言</li>
+        <li>每日約 15-20 支影片，Claude Haiku 費用 &lt; $0.20/天</li>
+      </ul>
+    </div>
+
+    <div class="source-card">
+      <div class="source-card-header">使用者提交<span class="source-tag">user</span></div>
+      <ol>
+        <li>使用者貼 URL</li>
+        <li>系統嘗試爬取 → Claude 萃取預言句子</li>
+        <li>爬取失敗（付費牆 / 反爬）→ 請使用者貼出「預言那句話」</li>
+        <li>使用者確認內容 → 進入 AI 審核流程</li>
+      </ol>
+    </div>
+
+    <div class="info-box">只存預言句子 + attribution（作者、來源名稱、日期、URL），不存全文。事實陳述不受著作權保護。</div>
+  </div>
+
+  <!-- AI 判定流程 -->
+  <div class="section">
+    <h2>AI 判定流程</h2>
+    <pre>① 新內容進入（爬蟲或使用者提交）
+   status = pending_review
+   → Claude Haiku 審核：「這是真正的預言嗎？有明確截止期嗎？」
+   → 拒絕：丟棄
+   → 通過：進入去重流程 ↓
+
+   去重流程（deduplication）
+   → pg_trgm 查詢：同 predictor + deadline ±30 天 + 文字相似度 > 0.7
+   → 無命中：status = active，建立新 Prediction
+   → 有命中：Claude Haiku 確認「是否為同一預言？」
+     → 是：將新來源寫入現有 PredictionSource，丟棄新 Prediction
+     → 否：status = active，建立新 Prediction
+
+② 每日 cron 檢查到期預言
+   active + deadline 已過
+   → 一翻兩瞪眼型（選舉結果、股價點位）：
+     cron 先呼叫外部 API 取得客觀資料
+     （如 Yahoo Finance 股價、選委會結果）
+     將原始預言 + 截止日 + 查到的資料一起傳給 Claude Haiku 判定
+     status = resolved，verdict = correct / bullshit
+     ⚠️ 外部 API 失敗：retry 3 次（指數退避），24h 仍失敗 → 自動轉 community_vote
+   → 模糊型（AI 泡沫、景氣好壞）：status = community_vote
+     開放 72 小時社群投票
+
+③ 社群投票結束
+   多數票的一方勝出
+   status = resolved，verdict 依票數決定
+   同時更新 predictor 的 bullshit_score 和 accuracy_rate</pre>
+  </div>
+
+  <!-- 核心頁面 -->
+  <div class="section">
+    <h2>核心頁面</h2>
+    <div class="page-cards">
+      <div class="page-card">
+        <div class="page-card-title">首頁 / 每日 Feed</div>
+        <ul>
+          <li>今天有哪些預言結果出爐（已判定）排最前</li>
+          <li>接著是即將到期的進行中預言</li>
+          <li>側邊欄：嘴炮排行榜 Top 5</li>
+        </ul>
+      </div>
+      <div class="page-card">
+        <div class="page-card-title">預言者頁面</div>
+        <ul>
+          <li>頭像 + 名稱 + 嘴炮指數 badge（紅色百分比）</li>
+          <li>橫排統計：總預言數 / 準了 / 嘴炮 / 準確率</li>
+          <li>時間線：所有歷史預言，可依狀態篩選</li>
+        </ul>
+      </div>
+      <div class="page-card">
+        <div class="page-card-title">嘴炮排行榜</div>
+        <ul>
+          <li>依嘴炮指數排名（嘴炮最多在最上面）</li>
+          <li>可切換：最準確排行</li>
+        </ul>
+      </div>
+      <div class="page-card">
+        <div class="page-card-title">分類瀏覽</div>
+        <ul>
+          <li>台股 / 政治 / 命理 / 科技 / 球賽 / AI / 其他</li>
+        </ul>
+      </div>
+      <div class="page-card">
+        <div class="page-card-title">提交頁面</div>
+        <ul>
+          <li>貼 URL + 可選填預言句子</li>
+          <li>登入後才能提交</li>
+        </ul>
+      </div>
+      <div class="page-card">
+        <div class="page-card-title">Privacy / Terms</div>
+        <ul>
+          <li><code>/privacy</code> + <code>/terms</code> 靜態頁</li>
+          <li>AdSense 審核 + Google Login 必要條件</li>
+          <li>上線前必須備妥</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tech Stack -->
+  <div class="section">
+    <h2>Tech Stack</h2>
+    <div class="table-wrap table-label">
+      <table>
+        <thead><tr><th>層</th><th>選擇</th></tr></thead>
+        <tbody>
+          <tr><td>Frontend + API</td><td>Next.js 15 (App Router)</td></tr>
+          <tr><td>DB</td><td>Supabase (PostgreSQL)</td></tr>
+          <tr><td>爬蟲排程</td><td>Vercel Cron + Cheerio（RSS）/ youtube-transcript-api</td></tr>
+          <tr><td>AI</td><td>Claude API — Haiku（審核 + 萃取 + 判定）</td></tr>
+          <tr><td>Auth</td><td>NextAuth.js（Google 登入）</td></tr>
+          <tr><td>廣告</td><td>Google AdSense</td></tr>
+          <tr><td>部署</td><td>Vercel</td></tr>
+          <tr><td>快取策略</td><td>Next.js ISR（Incremental Static Regeneration）</td></tr>
+          <tr><td>i18n</td><td>next-intl</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 品牌語氣 -->
+  <div class="section">
+    <h2>品牌語氣與命名</h2>
+    <h3>嘴炮指數的設計原則</h3>
+    <p>「嘴炮」保留——這是讓人想分享的靈魂。用雙向榮譽系統平衡，避免純粹負面感。</p>
+    <div class="table-wrap table-label">
+      <table>
+        <thead><tr><th>情況</th><th>Badge</th><th>語氣</th></tr></thead>
+        <tbody>
+          <tr><td>準確率 ≥ 70%</td><td style="color:var(--green);font-weight:600;">🎯 準神</td><td>正向肯定</td></tr>
+          <tr><td>準確率 30–70%</td><td style="color:var(--muted);font-weight:600;">📊 有待觀察</td><td>中性</td></tr>
+          <tr><td>準確率 &lt; 30%</td><td style="color:var(--red);font-weight:600;">💨 嘴炮</td><td>娛樂性</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="info-box" style="border-left-color:var(--yellow);background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.2);">
+      <strong style="color:var(--yellow);">免責框架</strong> — 所有頁面底部：「本站判定基於公開資料與社群投票，僅供娛樂參考，不代表任何法律立場。」判定機制本身（objective 類必須有客觀依據，subjective 交社群投票）才是對抗法律爭議的核心防線。
+    </div>
+  </div>
+
+  <!-- 分享功能 -->
+  <div class="section">
+    <h2>分享功能</h2>
+    <p>讓判定結果病毒式傳播是流量核心策略。</p>
+    <h3>Open Graph 動態卡片</h3>
+    <p>每則 resolved 預言自動生成 OG 圖片（<code>@vercel/og</code>），包含：預言者名稱、Badge、預言句子、判定結果與時間。</p>
+    <h3>分享按鈕</h3>
+    <div class="table-wrap table-label">
+      <table>
+        <thead><tr><th>平台</th><th>優先順序</th></tr></thead>
+        <tbody>
+          <tr><td>LINE</td><td>台灣第一（tw locale）</td></tr>
+          <tr><td>X / Twitter</td><td>全 locale</td></tr>
+          <tr><td>Facebook</td><td>tw / jp locale</td></tr>
+          <tr><td>Threads</td><td>tw locale</td></tr>
+          <tr><td>複製連結</td><td>全 locale</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 廣告策略 -->
+  <div class="section">
+    <h2>廣告策略</h2>
+    <ul>
+      <li>版位：首頁 Feed 中間、預言者頁面底部、排行榜側邊</li>
+      <li>不用登入即可看 = 最大化 PV = 最大化廣告曝光</li>
+      <li>SEO 靠 Next.js SSR + 每日更新內容自然積累</li>
+    </ul>
+  </div>
+
+  <!-- ISR -->
+  <div class="section" style="margin-top:-24px;">
+    <h3>ISR 快取策略</h3>
+    <div class="table-wrap table-label">
+      <table>
+        <thead><tr><th>頁面</th><th>revalidate</th><th>觸發方式</th></tr></thead>
+        <tbody>
+          <tr><td>首頁 Feed</td><td>1 小時</td><td><code>revalidateTag('feed')</code> when verdict resolved</td></tr>
+          <tr><td>預言者頁面</td><td>6 小時</td><td>on-demand when stats update</td></tr>
+          <tr><td>預言詳細頁</td><td>on-demand</td><td><code>revalidateTag('prediction-[id]')</code></td></tr>
+          <tr><td>排行榜</td><td>6 小時</td><td>scheduled</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:8px;">ISR 讓頁面達到靜態速度，改善 Core Web Vitals（SEO 排名因素），並大幅減少 Vercel function 呼叫數。</p>
+  </div>
+
+  <!-- Cold Start -->
+  <div class="section">
+    <h2>Cold Start 策略</h2>
+    <p style="margin-bottom:12px;">上線第一天爬蟲還沒跑，需要手動種子資料讓頁面有內容。<strong>優先放已 resolved 的歷史預言</strong>——用戶第一次來就能看到結果，比全是「進行中」更有趣、更有分享動機。</p>
+    <div class="table-wrap table-label">
+      <table>
+        <thead><tr><th>項目</th><th>數量</th><th>說明</th></tr></thead>
+        <tbody>
+          <tr><td>Predictor</td><td>10–15 位</td><td>台灣知名財經、命理、政治類</td></tr>
+          <tr><td>已 resolved 歷史預言</td><td>30+ 筆</td><td>從過去新聞挑已知結果的，立刻有 ✅/❌</td></tr>
+          <tr><td>Active 進行中預言</td><td>20+ 筆</td><td>截止日在未來，讓使用者有東西可投票</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Success Metrics -->
+  <div class="section">
+    <h2>Success Metrics</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:12px 0;">
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--blue);border-radius:10px;padding:18px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);margin-bottom:12px;">Day 1 · 上線驗收</div>
+        <ul style="gap:8px;">
+          <li style="font-size:13px;">網站可訪問，<code>/tw/</code> 路由正常</li>
+          <li style="font-size:13px;">20+ 個手動建立的 active 預言</li>
+          <li style="font-size:13px;">RSS 爬蟲第一次跑成功</li>
+          <li style="font-size:13px;">Google Search Console 提交 sitemap</li>
+          <li style="font-size:13px;">AdSense 申請送出</li>
+        </ul>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--cyan);border-radius:10px;padding:18px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--cyan);margin-bottom:12px;">Day 30 · 自動化驗收</div>
+        <ul style="gap:8px;">
+          <li style="font-size:13px;">爬蟲每日穩定執行</li>
+          <li style="font-size:13px;">100+ active 預言</li>
+          <li style="font-size:13px;">5+ 個預言已 resolved</li>
+          <li style="font-size:13px;">Google 收錄 50+ 頁</li>
+          <li style="font-size:13px;">月 UV &gt; 500</li>
+        </ul>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--purple);border-radius:10px;padding:18px;">
+        <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--purple);margin-bottom:12px;">Day N · 規模化門檻</div>
+        <ul style="gap:8px;">
+          <li style="font-size:13px;">月 UV &gt; 10,000 → AdSense 實際收入</li>
+          <li style="font-size:13px;">月 UV &gt; 50,000 → 評估開 <code>/jp/</code></li>
+          <li style="font-size:13px;">投票平均 &gt; 50 票 → 評估 iOS App</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="section">
+    <h2>Security</h2>
+
+    <h3>1 · Rate Limiting</h3>
+    <div class="table-wrap table-label">
+      <table>
+        <thead><tr><th>對象</th><th>限制</th></tr></thead>
+        <tbody>
+          <tr><td>登入用戶 — 提交預言</td><td>5 筆 / 天 / 帳號</td></tr>
+          <tr><td>登入用戶 — 投票</td><td>1 票 / 預言（DB 唯一性約束）</td></tr>
+          <tr><td>未登入訪客 — API 呼叫</td><td>60 req / 分鐘 / IP（Vercel Middleware）</td></tr>
+          <tr><td>同一 IP 短時間大量提交</td><td>自動暫時封鎖（sliding window，1 小時冷卻）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>2 · Supabase Row Level Security（RLS）</h3>
+    <ul style="margin-bottom:16px;">
+      <li><code>prediction</code> 表：只能透過 server-side API Route 寫入，client 無法直接 insert</li>
+      <li><code>vote</code> 表：<code>UNIQUE(prediction_id, user_id)</code> 約束，一人一票在 DB 層強制</li>
+      <li>用戶只能讀取自己的 vote 記錄，不能讀或改別人的</li>
+    </ul>
+
+    <h3>3 · Input Validation</h3>
+    <ul style="margin-bottom:16px;">
+      <li><strong>URL</strong>：提交前驗證格式，封鎖 <code>localhost</code>、私有 IP（10.x、192.168.x）、已知濫用域名</li>
+      <li><strong>內容長度</strong>：預言句子上限 500 字</li>
+      <li><strong>截止日</strong>：必須是未來日期，且不超過提交日起 5 年</li>
+    </ul>
+
+    <h3>4 · Content Abuse Prevention</h3>
+    <ul style="margin-bottom:16px;">
+      <li>Claude Haiku 審核是第一道過濾（<code>pending_review</code> 階段）</li>
+      <li>每則 active 預言提供「檢舉」按鈕 → 寫入 <code>reports</code> table → 進人工審核佇列</li>
+      <li>同一帳號連續被檢舉 3 次 → 自動暫停提交權限，等人工審核</li>
+    </ul>
+
+    <h3>5 · Admin 後台</h3>
+    <ul>
+      <li>路由：<code>/admin</code>，僅限 email whitelist（環境變數設定）進入，NextAuth session 驗證</li>
+      <li>功能：手動 resolve / 刪除預言、查看 <code>reports</code> 佇列、解除帳號封鎖</li>
+    </ul>
+  </div>
+
+  <!-- 不在 MVP 範圍內 -->
+  <div class="section">
+    <h2>不在 MVP 範圍內</h2>
+    <div class="oos-list">
+      <span class="oos-tag">iOS App（有流量後再做）</span>
+      <span class="oos-tag">使用者個人化通知</span>
+      <span class="oos-tag">多語言</span>
+      <span class="oos-tag">付費功能</span>
+      <span class="oos-tag">自訂嵌入 widget</span>
+    </div>
+  </div>
+
+  <!-- 風險與注意事項 -->
+  <div class="section">
+    <h2>風險與注意事項</h2>
+    <div class="table-wrap table-risk">
+      <table>
+        <thead><tr><th>風險</th><th>對策</th></tr></thead>
+        <tbody>
+          <tr><td>爬蟲被封</td><td>robots.txt 遵守 + rate limiting + User-Agent 標明身份</td></tr>
+          <tr><td>版權爭議</td><td>只存預言句子，不存全文，標明出處</td></tr>
+          <tr><td>AI 判定爭議</td><td>模糊案例走社群投票，保留人工覆核入口</td></tr>
+          <tr><td>嘴炮指數爭議</td><td>公開算法，讓社群可以挑戰</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prediction Feed — Card Design Options</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@500&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2d45;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --blue: #3b82f6;
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --purple: #a855f7;
+    --orange: #f97316;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 40px 24px 80px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .page { max-width: 960px; margin: 0 auto; position: relative; }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #e2e8f0, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { color: var(--muted); font-size: 13px; margin-bottom: 48px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .option { margin-bottom: 56px; }
+
+  .desc {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    line-height: 1.7;
+  }
+  .desc strong { color: var(--text); }
+
+  /* ── SHARED ATOMS ─────────────────────────────── */
+
+  .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .avatar-sm {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600;
+  }
+  .badge-bullshit { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+  .badge-correct  { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+  .badge-pending  { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+  .badge-vote     { background: rgba(168,85,247,0.12); color: #a855f7; border: 1px solid rgba(168,85,247,0.25); }
+
+  .cat-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cat-stock  { background: rgba(59,130,246,0.1);  color: #3b82f6; }
+  .cat-politics { background: rgba(168,85,247,0.1); color: #a855f7; }
+  .cat-crypto { background: rgba(245,158,11,0.1);  color: #f59e0b; }
+  .cat-lucky  { background: rgba(239,68,68,0.1);   color: #ef4444; }
+
+  /* ── OPTION A: Twitter/Threads-style feed ─── */
+
+  .feed-a { display: flex; flex-direction: column; gap: 1px; }
+
+  .card-a {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .card-a:first-child { border-radius: 10px 10px 0 0; }
+  .card-a:last-child  { border-radius: 0 0 10px 10px; }
+  .card-a:hover { background: var(--surface2); }
+
+  .card-a-body { flex: 1; min-width: 0; }
+
+  .card-a-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .predictor-name { font-weight: 600; font-size: 13px; }
+  .predictor-score { font-size: 11px; color: var(--red); font-weight: 600; }
+
+  .prediction-text {
+    font-size: 14px;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .prediction-text em {
+    font-style: normal;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .card-a-footer {
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .meta { font-size: 11px; color: var(--muted); }
+
+  /* ── OPTION B: Card with verdict accent ─── */
+
+  .feed-b { display: flex; flex-direction: column; gap: 10px; }
+
+  .card-b {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    transition: transform 0.15s;
+    cursor: pointer;
+  }
+  .card-b:hover { transform: translateX(2px); }
+
+  .card-b-accent {
+    width: 4px;
+    flex-shrink: 0;
+  }
+  .accent-bullshit { background: var(--red); }
+  .accent-correct  { background: var(--green); }
+  .accent-pending  { background: var(--yellow); }
+  .accent-vote     { background: var(--purple); }
+
+  .card-b-content {
+    padding: 14px 16px;
+    flex: 1;
+    display: flex;
+    gap: 12px;
+  }
+
+  .card-b-body { flex: 1; }
+  .card-b-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 6px; gap: 8px;
+  }
+  .card-b-meta {
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .verdict-icon {
+    font-size: 28px;
+    line-height: 1;
+    flex-shrink: 0;
+    align-self: center;
+  }
+
+  .vote-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .vote-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--red), var(--purple));
+  }
+  .vote-label {
+    display: flex; justify-content: space-between;
+    font-size: 10px; color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── OPTION C: Magazine / editorial ─── */
+
+  .feed-c { display: flex; flex-direction: column; gap: 0; }
+
+  .card-c {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: start;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .card-c:hover { opacity: 0.8; }
+  .card-c:first-child { padding-top: 0; }
+
+  .card-c-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--border);
+    font-weight: 700;
+    padding-top: 2px;
+    width: 20px;
+  }
+
+  .card-c-body {}
+  .card-c-top {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px; flex-wrap: wrap;
+  }
+
+  .card-c-right {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .verdict-big {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+  .verdict-big-bullshit { background: rgba(239,68,68,0.15); color: var(--red); }
+  .verdict-big-correct  { background: rgba(16,185,129,0.15); color: var(--green); }
+  .verdict-big-pending  { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .deadline-text { font-size: 10px; color: var(--muted); }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>預言 Feed — Card 設計選項</h1>
+  <p class="subtitle">三種呈現方式，都用 Predictor avatar 作為視覺錨點，不需要每則預言準備圖片</p>
+
+  <!-- ── OPTION A ── -->
+  <div class="option">
+    <div class="section-label">Option A · Twitter / Threads 風格</div>
+    <div class="desc">
+      <strong>Avatar 左側固定，預言內容靠右展開。</strong>嘴炮 badge 緊跟名字後面，類似 verified badge 的位置感。密度高、適合快速瀏覽，每則高度一致，節奏感像社群 feed。色彩來自 badge 和底線，不需要圖。
+    </div>
+
+    <div class="feed-a">
+
+      <div class="card-a">
+        <div class="avatar">📊</div>
+        <div class="card-a-body">
+          <div class="card-a-header">
+            <span class="predictor-name">股癌 Gooaye</span>
+            <span class="predictor-score">💨 嘴炮 62%</span>
+            <span class="cat-badge cat-stock">台股</span>
+          </div>
+          <div class="prediction-text">「<em>台積電年底前一定站上 1,500</em>」</div>
+          <div class="card-a-footer">
+            <span class="badge badge-bullshit">❌ 嘴炮</span>
+            <span class="meta">·</span>
+            <span class="meta">截止 2025/12 · 1,243 票</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-a">
+        <div class="avatar">🔮</div>
+        <div class="card-a-body">
+          <div class="card-a-header">
+            <span class="predictor-name">天機老師</span>
+            <span class="predictor-score">💨 嘴炮 83%</span>
+            <span class="cat-badge cat-lucky">命理</span>
+          </div>
+          <div class="prediction-text">「<em>龍年財運大爆發，重壓台股必賺</em>」</div>
+          <div class="card-a-footer">
+            <span class="badge badge-bullshit">❌ 嘴炮</span>
+            <span class="meta">·</span>
+            <span class="meta">截止 2026/01 · 812 票</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-a">
+        <div class="avatar">🏛️</div>
+        <div class="card-a-body">
+          <div class="card-a-header">
+            <span class="predictor-name">政治大學選研中心</span>
+            <span style="font-size:11px;color:var(--green);font-weight:600;">🎯 準神 71%</span>
+            <span class="cat-badge cat-politics">政治</span>
+          </div>
+          <div class="prediction-text">「<em>執政黨在北部選區選情明顯告急</em>」</div>
+          <div class="card-a-footer">
+            <span class="badge badge-correct">✅ 準了</span>
+            <span class="meta">·</span>
+            <span class="meta">截止 2026/01 · 456 票</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-a">
+        <div class="avatar">₿</div>
+        <div class="card-a-body">
+          <div class="card-a-header">
+            <span class="predictor-name">某科技 YouTuber</span>
+            <span class="predictor-score">💨 嘴炮 55%</span>
+            <span class="cat-badge cat-crypto">科技</span>
+          </div>
+          <div class="prediction-text">「<em>比特幣年底必破 20 萬美金，不信你等著</em>」</div>
+          <div class="card-a-footer">
+            <span class="badge badge-vote">🗳️ 投票中</span>
+            <span class="meta">·</span>
+            <span class="meta">截止 2026/12 · 剩 48h</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── OPTION B ── -->
+  <div class="option">
+    <div class="section-label">Option B · 彩色左邊框 + 大 verdict icon</div>
+    <div class="desc">
+      <strong>左邊 4px 色條直接說明狀態：紅=嘴炮、綠=準了、黃=進行中、紫=投票中。</strong>右側放大的 emoji verdict icon 讓結果一眼就看到。投票中的卡片顯示即時票數進度條。視覺節奏感比 A 強，適合「今天結果出爐」的 highlight 區塊。
+    </div>
+
+    <div class="feed-b">
+
+      <div class="card-b">
+        <div class="card-b-accent accent-bullshit"></div>
+        <div class="card-b-content">
+          <div class="avatar">📊</div>
+          <div class="card-b-body">
+            <div class="card-b-header">
+              <div>
+                <div class="card-b-meta">
+                  <span class="predictor-name">股癌 Gooaye</span>
+                  <span class="cat-badge cat-stock">台股</span>
+                </div>
+                <div class="prediction-text" style="margin-top:6px;margin-bottom:0;">「<em>台積電年底前一定站上 1,500</em>」</div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                  <span class="badge badge-bullshit">❌ 嘴炮確定</span>
+                  <span class="meta">1,243 票 · 2025/12</span>
+                </div>
+              </div>
+              <div class="verdict-icon">💨</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-b">
+        <div class="card-b-accent accent-correct"></div>
+        <div class="card-b-content">
+          <div class="avatar">🏛️</div>
+          <div class="card-b-body">
+            <div class="card-b-header">
+              <div>
+                <div class="card-b-meta">
+                  <span class="predictor-name">政治大學選研中心</span>
+                  <span class="cat-badge cat-politics">政治</span>
+                </div>
+                <div class="prediction-text" style="margin-top:6px;margin-bottom:0;">「<em>執政黨在北部選區選情明顯告急</em>」</div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                  <span class="badge badge-correct">✅ 準了</span>
+                  <span class="meta">456 票 · 2026/01</span>
+                </div>
+              </div>
+              <div class="verdict-icon">🎯</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-b">
+        <div class="card-b-accent accent-vote"></div>
+        <div class="card-b-content">
+          <div class="avatar">₿</div>
+          <div class="card-b-body">
+            <div class="card-b-header">
+              <div style="flex:1;">
+                <div class="card-b-meta">
+                  <span class="predictor-name">某科技 YouTuber</span>
+                  <span class="cat-badge cat-crypto">科技</span>
+                </div>
+                <div class="prediction-text" style="margin-top:6px;margin-bottom:0;">「<em>比特幣年底必破 20 萬美金，不信你等著</em>」</div>
+                <div class="vote-bar"><div class="vote-fill" style="width:67%"></div></div>
+                <div class="vote-label">
+                  <span>嘴炮 67% (892票)</span>
+                  <span>準了 33%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-b">
+        <div class="card-b-accent accent-pending"></div>
+        <div class="card-b-content">
+          <div class="avatar">🔮</div>
+          <div class="card-b-body">
+            <div class="card-b-header">
+              <div>
+                <div class="card-b-meta">
+                  <span class="predictor-name">天機老師</span>
+                  <span class="cat-badge cat-lucky">命理</span>
+                </div>
+                <div class="prediction-text" style="margin-top:6px;margin-bottom:0;">「<em>2026 年底前必有重大天災警示</em>」</div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                  <span class="badge badge-pending">⏳ 進行中</span>
+                  <span class="meta">截止 2026/12/31</span>
+                </div>
+              </div>
+              <div class="verdict-icon" style="opacity:0.3;">⏳</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── OPTION C ── -->
+  <div class="option">
+    <div class="section-label">Option C · 編輯清單風格（密度最高）</div>
+    <div class="desc">
+      <strong>編號 + 小 avatar + 單行預言文字 + 右側 verdict。</strong>像 HackerNews 或財經報紙的感覺，資訊密度最高，適合「排行榜」或「今日全部結果」的瀏覽情境。不強調個別卡片，強調清單的整體感。
+    </div>
+
+    <div class="feed-c">
+
+      <div class="card-c">
+        <div class="card-c-num">01</div>
+        <div class="card-c-body">
+          <div class="card-c-top">
+            <div class="avatar-sm">📊</div>
+            <span style="font-weight:600;font-size:13px;">股癌 Gooaye</span>
+            <span class="cat-badge cat-stock">台股</span>
+            <span style="font-size:11px;color:var(--red);">嘴炮 62%</span>
+          </div>
+          <div style="font-size:13px;color:#94a3b8;padding-left:46px;">「台積電年底前一定站上 1,500」</div>
+          <div style="font-size:11px;color:var(--muted);padding-left:46px;margin-top:3px;">1,243 票 · 2025/12</div>
+        </div>
+        <div class="card-c-right">
+          <div class="verdict-big verdict-big-bullshit">❌ 嘴炮</div>
+        </div>
+      </div>
+
+      <div class="card-c">
+        <div class="card-c-num">02</div>
+        <div class="card-c-body">
+          <div class="card-c-top">
+            <div class="avatar-sm">🏛️</div>
+            <span style="font-weight:600;font-size:13px;">政治大學選研中心</span>
+            <span class="cat-badge cat-politics">政治</span>
+            <span style="font-size:11px;color:var(--green);">準神 71%</span>
+          </div>
+          <div style="font-size:13px;color:#94a3b8;padding-left:46px;">「執政黨在北部選區選情明顯告急」</div>
+          <div style="font-size:11px;color:var(--muted);padding-left:46px;margin-top:3px;">456 票 · 2026/01</div>
+        </div>
+        <div class="card-c-right">
+          <div class="verdict-big verdict-big-correct">✅ 準了</div>
+        </div>
+      </div>
+
+      <div class="card-c">
+        <div class="card-c-num">03</div>
+        <div class="card-c-body">
+          <div class="card-c-top">
+            <div class="avatar-sm">🔮</div>
+            <span style="font-weight:600;font-size:13px;">天機老師</span>
+            <span class="cat-badge cat-lucky">命理</span>
+            <span style="font-size:11px;color:var(--red);">嘴炮 83%</span>
+          </div>
+          <div style="font-size:13px;color:#94a3b8;padding-left:46px;">「龍年財運大爆發，重壓台股必賺」</div>
+          <div style="font-size:11px;color:var(--muted);padding-left:46px;margin-top:3px;">812 票 · 2026/01</div>
+        </div>
+        <div class="card-c-right">
+          <div class="verdict-big verdict-big-bullshit">❌ 嘴炮</div>
+        </div>
+      </div>
+
+      <div class="card-c">
+        <div class="card-c-num">04</div>
+        <div class="card-c-body">
+          <div class="card-c-top">
+            <div class="avatar-sm">₿</div>
+            <span style="font-weight:600;font-size:13px;">某科技 YouTuber</span>
+            <span class="cat-badge cat-crypto">科技</span>
+            <span style="font-size:11px;color:var(--muted);">55%</span>
+          </div>
+          <div style="font-size:13px;color:#94a3b8;padding-left:46px;">「比特幣年底必破 20 萬美金，不信你等著」</div>
+          <div style="font-size:11px;color:var(--muted);padding-left:46px;margin-top:3px;">截止 2026/12</div>
+        </div>
+        <div class="card-c-right">
+          <div class="verdict-big verdict-big-pending">⏳ 進行中</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:32px;">
+    這三種都不需要每則預言準備獨立圖片。視覺豐富度來自 avatar + 狀態色 + badge。
+  </p>
+
+</div>
+</body>
+</html>
