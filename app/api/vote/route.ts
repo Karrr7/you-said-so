@@ -12,10 +12,12 @@ export async function GET(request: NextRequest) {
   const session = await auth()
   const db = createServiceClient()
 
-  const { data: votes } = await db
+  const { data: votes, error: votesError } = await db
     .from('votes')
     .select('choice, user_id')
     .eq('prediction_id', predictionId)
+
+  if (votesError) return NextResponse.json({ error: votesError.message }, { status: 500 })
 
   const rows = votes ?? []
   const correct = rows.filter(v => v.choice === 'correct').length
