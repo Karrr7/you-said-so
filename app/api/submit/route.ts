@@ -138,12 +138,14 @@ export async function POST(request: NextRequest) {
   }
 
   // Insert source
-  await db.from('prediction_sources').insert({
+  const { error: sourceErr } = await db.from('prediction_sources').insert({
     prediction_id: prediction.id,
     source_url: source_url!,
     source_name: new URL(source_url!).hostname.replace('www.', ''),
     source_snapshot: null,
   })
+
+  if (sourceErr) return NextResponse.json({ error: 'failed to save source' }, { status: 500 })
 
   return NextResponse.json({ success: true, prediction_id: prediction.id }, { status: 201 })
 }
