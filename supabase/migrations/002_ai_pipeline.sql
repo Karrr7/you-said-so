@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS idx_predictions_submitted_by
   WHERE submitted_by IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_predictions_not_deleted
-  ON predictions(id)
+  ON predictions(status, deadline)
   WHERE deleted_at IS NULL;
 
 -- ── UPDATE RLS POLICY ─────────────────────────────────────────────────────
