@@ -3,10 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import { createServiceClient } from '@/lib/supabase'
 import { validateUrl, validateDeadline, validateContent } from '@/lib/validation'
+import { reviewSubmission, checkDuplicate } from '@/lib/ai'
 import type { Category, Locale } from '@/lib/types'
 
 const VALID_CATEGORIES: Category[] = ['stock', 'politics', 'fortune', 'tech', 'sports', 'ai', 'other']
 const VALID_LOCALES: Locale[] = ['tw', 'jp', 'us']
+const DAILY_LIMIT = 5
 
 function toSlug(name: string): string {
   return name
@@ -24,6 +26,7 @@ export async function POST(request: NextRequest) {
   if (!session?.user?.email) {
     return NextResponse.json({ error: 'login required' }, { status: 401 })
   }
+  const userId = session.user.email
 
   let body: {
     predictor_name?: string
@@ -56,20 +59,21 @@ export async function POST(request: NextRequest) {
 
   const db = createServiceClient()
 
-  // Rate limit: global daily guard
+  // Per-user rate limit: 5 submissions per calendar day
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
-  const { count } = await db
+  const { count: userCount } = await db
     .from('predictions')
     .select('id', { count: 'exact', head: true })
-    .eq('status', 'pending_review')
+    .eq('submitted_by', userId)
     .gte('created_at', todayStart.toISOString())
+    .is('deleted_at', null)
 
-  if ((count ?? 0) >= 100) {
-    return NextResponse.json({ error: 'daily submission limit reached, try again tomorrow' }, { status: 429 })
+  if ((userCount ?? 0) >= DAILY_LIMIT) {
+    return NextResponse.json({ error: `daily limit of ${DAILY_LIMIT} submissions reached, try again tomorrow` }, { status: 429 })
   }
 
-  // Find or create predictor by slug
+  // Find or create predictor
   const slug = toSlug(predictor_name.trim())
   let predictorId: string
 
@@ -103,7 +107,7 @@ export async function POST(request: NextRequest) {
     predictorId = created.id
   }
 
-  // Generate unique slug for prediction
+  // Generate unique prediction slug
   const contentSlug = content!
     .slice(0, 40)
     .toLowerCase()
@@ -116,7 +120,7 @@ export async function POST(request: NextRequest) {
   const year = new Date(deadline!).getFullYear()
   const predictionSlug = `${slug}-${contentSlug || 'prediction'}-${year}-${Date.now()}`
 
-  // Insert prediction
+  // Insert with pending_review status
   const { data: prediction, error: predErr } = await db
     .from('predictions')
     .insert({
@@ -127,9 +131,9 @@ export async function POST(request: NextRequest) {
       deadline: deadline!,
       category: category as Category,
       verdict_type: 'subjective',
-      submitted_by: userId,
       status: 'pending_review',
       verdict: null,
+      submitted_by: userId,
     })
     .select('id')
     .single()
@@ -139,14 +143,85 @@ export async function POST(request: NextRequest) {
   }
 
   // Insert source
-  const { error: sourceErr } = await db.from('prediction_sources').insert({
+  await db.from('prediction_sources').insert({
     prediction_id: prediction.id,
     source_url: source_url!,
     source_name: new URL(source_url!).hostname.replace('www.', ''),
     source_snapshot: null,
   })
 
-  if (sourceErr) return NextResponse.json({ error: 'failed to save source' }, { status: 500 })
+  // Skip AI review in dev when no API key is configured
+  if (!process.env.ANTHROPIC_API_KEY) {
+    await db.from('predictions')
+      .update({ status: 'active' })
+      .eq('id', prediction.id)
+    return NextResponse.json({ success: true, prediction_id: prediction.id }, { status: 201 })
+  }
+
+  // ── AI REVIEW ────────────────────────────────────────────────────────────
+
+  let reviewResult: Awaited<ReturnType<typeof reviewSubmission>>
+  try {
+    reviewResult = await reviewSubmission(content!.trim(), deadline!)
+  } catch {
+    // AI service error — approve so user isn't blocked; admin can review later
+    await db.from('predictions').update({ status: 'active' }).eq('id', prediction.id)
+    return NextResponse.json({ success: true, prediction_id: prediction.id }, { status: 201 })
+  }
+
+  if (!reviewResult.is_prediction) {
+    await db.from('predictions').update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: 'ai-review',
+      delete_reason: reviewResult.reason || 'AI review: not a valid prediction',
+    }).eq('id', prediction.id)
+
+    return NextResponse.json(
+      { error: `Submission rejected: ${reviewResult.reason || 'not a valid prediction with a deadline'}` },
+      { status: 422 }
+    )
+  }
+
+  // ── DEDUPLICATION ─────────────────────────────────────────────────────────
+
+  const { data: similar } = await db.rpc('find_similar_predictions', {
+    p_predictor_id: predictorId,
+    p_deadline: deadline!,
+    p_content: content!.trim(),
+    p_exclude_id: prediction.id,
+  })
+
+  for (const candidate of (similar ?? [])) {
+    let dupCheck: Awaited<ReturnType<typeof checkDuplicate>>
+    try {
+      dupCheck = await checkDuplicate(content!.trim(), candidate.content)
+    } catch {
+      continue
+    }
+
+    if (dupCheck.is_same) {
+      await db.from('prediction_sources').insert({
+        prediction_id: candidate.id,
+        source_url: source_url!,
+        source_name: new URL(source_url!).hostname.replace('www.', ''),
+        source_snapshot: null,
+      })
+      await db.from('predictions').update({
+        deleted_at: new Date().toISOString(),
+        deleted_by: 'ai-review',
+        delete_reason: 'Duplicate — merged source into existing prediction',
+      }).eq('id', prediction.id)
+
+      return NextResponse.json({ success: true, prediction_id: candidate.id }, { status: 201 })
+    }
+  }
+
+  // ── APPROVE ───────────────────────────────────────────────────────────────
+
+  await db.from('predictions').update({
+    status: 'active',
+    verdict_type: reviewResult.verdict_type,
+  }).eq('id', prediction.id)
 
   return NextResponse.json({ success: true, prediction_id: prediction.id }, { status: 201 })
 }
