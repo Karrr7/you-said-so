@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     .lt('voting_started_at', cutoff)
     .limit(50)
 
-  const results = { resolved: 0, errors: 0 }
+  const results = { resolved: 0, errors: 0, skipped: 0 }
 
   for (const pred of ready ?? []) {
     try {
@@ -35,6 +35,12 @@ export async function GET(request: NextRequest) {
       const rows = votes ?? []
       const correct = rows.filter(v => v.choice === 'correct').length
       const bullshit = rows.filter(v => v.choice === 'bullshit').length
+
+      if (correct + bullshit === 0) {
+        results.skipped++
+        continue
+      }
+
       // Ties go to bullshit (more engaging outcome for the platform)
       const verdict: 'correct' | 'bullshit' = correct > bullshit ? 'correct' : 'bullshit'
 
