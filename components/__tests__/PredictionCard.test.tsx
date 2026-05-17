@@ -18,6 +18,11 @@ const basePrediction: PredictionWithRelations = {
   status: 'active',
   verdict: null,
   created_at: '2025-01-01T00:00:00Z',
+  submitted_by: null,
+  deleted_at: null,
+  deleted_by: null,
+  delete_reason: null,
+  voting_started_at: null,
   predictor: {
     id: 'p1', name: '股癌 Gooaye', slug: 'gooaye', type: 'individual',
     category: 'stock', locale: 'tw', avatar_url: null, wiki_url: null,
