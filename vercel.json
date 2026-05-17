@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/check-deadlines",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/resolve-votes",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}
