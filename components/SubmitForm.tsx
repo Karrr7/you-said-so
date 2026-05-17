@@ -29,6 +29,9 @@ export default function SubmitForm({ locale }: Props) {
   })
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [predictionId, setPredictionId] = useState<string | null>(null)
+  const [withdrawing, setWithdrawing] = useState(false)
+  const [withdrawn, setWithdrawn] = useState(false)
 
   async function handleFetchUrl() {
     setScraping(true)
@@ -64,20 +67,52 @@ export default function SubmitForm({ locale }: Props) {
     })
 
     setSubmitting(false)
+    const data = await res.json()
     if (!res.ok) {
-      const data = await res.json()
       setSubmitError(data.error ?? 'submission failed')
     } else {
+      setPredictionId(data.prediction_id ?? null)
       setStep('success')
     }
   }
 
   if (step === 'success') {
+    async function handleWithdraw() {
+      if (!predictionId || withdrawing) return
+      setWithdrawing(true)
+      const res = await fetch(`/api/predictions/${predictionId}`, { method: 'DELETE' })
+      setWithdrawing(false)
+      if (res.ok) {
+        setWithdrawn(true)
+      } else {
+        const data = await res.json()
+        if (res.status === 409) {
+          alert('審核已完成，無法撤回，請聯絡我們')
+        } else {
+          alert(data.error ?? 'withdraw failed')
+        }
+      }
+    }
+
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">🎉</div>
         <h2 className="text-lg font-black text-[#e6edf3] mb-2">提交成功！</h2>
         <p className="text-sm text-[#6e7681] mb-6">我們會在審核後發布這則預言。</p>
+
+        {predictionId && !withdrawn && (
+          <button
+            onClick={handleWithdraw}
+            disabled={withdrawing}
+            className="block mx-auto mb-4 text-xs text-[#6e7681] hover:text-[#e6edf3] disabled:opacity-40 underline underline-offset-2"
+          >
+            {withdrawing ? '撤回中…' : '撤回這則提交'}
+          </button>
+        )}
+        {withdrawn && (
+          <p className="text-xs text-[#6e7681] mb-4">已撤回</p>
+        )}
+
         <a href={`/${locale}`} className="text-sm text-blue-400 hover:underline">← 回首頁</a>
       </div>
     )
