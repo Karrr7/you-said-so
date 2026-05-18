@@ -39,6 +39,9 @@ export default async function NavBar({ locale }: Props) {
           </Link>
           {session ? (
             <>
+              <Link href={`/${locale}/me`} className="text-sm text-[#6e7681] hover:text-[#e6edf3] transition-colors">
+                我的提交
+              </Link>
               <Link href={`/${locale}/submit`} className="text-sm text-[#6e7681] hover:text-[#e6edf3] transition-colors">
                 提交預言
               </Link>
