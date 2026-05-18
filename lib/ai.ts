@@ -115,3 +115,63 @@ Otherwise reply ONLY with valid JSON:
     return null
   }
 }
+
+export interface ExtractedPrediction {
+  predictor_name: string
+  content: string
+  deadline: string
+  category: string
+}
+
+export async function extractPredictionsFromText(
+  articleText: string,
+  sourceName: string,
+): Promise<ExtractedPrediction[]> {
+  if (!articleText.trim()) return []
+
+  const client = getClient()
+  const today = new Date().toISOString().split('T')[0]
+  const message = await client.messages.create({
+    model: MODEL,
+    max_tokens: 1024,
+    messages: [{
+      role: 'user',
+      content: `Extract all concrete predictions from this text. A prediction is a future-tense claim by a named person about what will happen, with an implied or stated deadline.
+
+Source: "${sourceName}"
+Today: "${today}"
+Text:
+${articleText.slice(0, 3000)}
+
+Return a JSON array. If no predictions found, return [].
+Each item: {"predictor_name": "...", "content": "...", "deadline": "YYYY-MM-DD", "category": "stock|politics|fortune|tech|sports|ai|other"}
+
+Rules:
+- predictor_name: the person or institution making the prediction
+- content: the prediction sentence, max 200 chars
+- deadline: date by which it can be verified; if vague like "this year" use ${new Date().getFullYear()}-12-31; skip if no deadline can be inferred
+- Only include predictions with a clear named predictor AND an inferable deadline
+
+Reply ONLY with a valid JSON array.`,
+    }],
+  })
+
+  const responseText = message.content[0].type === 'text' ? message.content[0].text : '[]'
+  try {
+    const jsonMatch = responseText.match(/\[[\s\S]*\]/)
+    if (!jsonMatch) return []
+    const results = JSON.parse(jsonMatch[0])
+    if (!Array.isArray(results)) return []
+    return results.filter(
+      (r: unknown): r is ExtractedPrediction =>
+        typeof r === 'object' &&
+        r !== null &&
+        typeof (r as ExtractedPrediction).predictor_name === 'string' &&
+        typeof (r as ExtractedPrediction).content === 'string' &&
+        typeof (r as ExtractedPrediction).deadline === 'string' &&
+        /^\d{4}-\d{2}-\d{2}$/.test((r as ExtractedPrediction).deadline),
+    )
+  } catch {
+    return []
+  }
+}

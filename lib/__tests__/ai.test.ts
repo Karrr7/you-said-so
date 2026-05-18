@@ -99,3 +99,65 @@ describe('judgeExpiredPrediction', () => {
     expect(result).toBeNull()
   })
 })
+
+describe('extractPredictionsFromText', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('returns parsed prediction array when Claude returns valid JSON', async () => {
+    const create = await getCreate()
+    create.mockResolvedValueOnce({
+      content: [{
+        type: 'text',
+        text: '[{"predictor_name":"股癌","content":"台積電年底破1500","deadline":"2026-12-31","category":"stock"}]',
+      }],
+    })
+    const { extractPredictionsFromText } = await import('../ai')
+    const result = await extractPredictionsFromText('股癌說台積電年底破1500', 'Yahoo 奇摩新聞')
+    expect(result).toHaveLength(1)
+    expect(result[0].predictor_name).toBe('股癌')
+    expect(result[0].deadline).toBe('2026-12-31')
+    expect(result[0].category).toBe('stock')
+  })
+
+  it('returns empty array when Claude finds no predictions', async () => {
+    const create = await getCreate()
+    create.mockResolvedValueOnce({
+      content: [{ type: 'text', text: '[]' }],
+    })
+    const { extractPredictionsFromText } = await import('../ai')
+    const result = await extractPredictionsFromText('今天天氣很好', 'ETtoday')
+    expect(result).toHaveLength(0)
+  })
+
+  it('filters out items with invalid deadline format', async () => {
+    const create = await getCreate()
+    create.mockResolvedValueOnce({
+      content: [{
+        type: 'text',
+        text: '[{"predictor_name":"A","content":"B","deadline":"not-a-date","category":"other"},{"predictor_name":"C","content":"D","deadline":"2026-06-01","category":"stock"}]',
+      }],
+    })
+    const { extractPredictionsFromText } = await import('../ai')
+    const result = await extractPredictionsFromText('some text', 'source')
+    expect(result).toHaveLength(1)
+    expect(result[0].predictor_name).toBe('C')
+  })
+
+  it('returns empty array on malformed JSON', async () => {
+    const create = await getCreate()
+    create.mockResolvedValueOnce({
+      content: [{ type: 'text', text: 'not json at all' }],
+    })
+    const { extractPredictionsFromText } = await import('../ai')
+    const result = await extractPredictionsFromText('some text', 'source')
+    expect(result).toHaveLength(0)
+  })
+
+  it('returns empty array for empty input text without calling Claude', async () => {
+    const create = await getCreate()
+    const { extractPredictionsFromText } = await import('../ai')
+    const result = await extractPredictionsFromText('   ', 'source')
+    expect(result).toHaveLength(0)
+    expect(create).not.toHaveBeenCalled()
+  })
+})
