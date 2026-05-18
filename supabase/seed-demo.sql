@@ -149,22 +149,19 @@ VALUES
 -- ── Community vote 🗳️ ────────────────────────────────────────
 
 INSERT INTO predictions
-  (content, predictor_id, locale, slug, deadline, category, verdict_type, status, verdict, voting_started_at)
+  (content, predictor_id, locale, slug, deadline, category, verdict_type, status, verdict)
 VALUES
   ('柯文哲將在年底前獲判無罪，並重返政壇繼續政治生命',
    id_zhu, 'tw', 'demo-zhu-kmt-innocent-2025',
-   '2025-12-31', 'politics', 'subjective', 'community_vote', NULL,
-   NOW() - INTERVAL '24 hours'),
+   '2025-12-31', 'politics', 'subjective', 'community_vote', NULL),
 
   ('2026年台灣將發生重大政治動盪，現任執政黨搖搖欲墜',
    id_tianji, 'tw', 'demo-tianji-political-2026',
-   '2026-01-01', 'politics', 'subjective', 'community_vote', NULL,
-   NOW() - INTERVAL '12 hours'),
+   '2026-01-01', 'politics', 'subjective', 'community_vote', NULL),
 
   ('台積電ADR今年除息前將漲破200美元，空頭要小心',
    id_liaohua, 'tw', 'demo-liaohua-tsm-adr-200-2025',
-   '2025-09-30', 'stock', 'objective', 'community_vote', NULL,
-   NOW() - INTERVAL '36 hours');
+   '2025-09-30', 'stock', 'objective', 'community_vote', NULL);
 
 -- ── Active — ongoing ⏳ ───────────────────────────────────────
 
