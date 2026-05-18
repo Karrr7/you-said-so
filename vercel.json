@@ -1,12 +1,8 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/check-deadlines",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/resolve-votes",
-      "schedule": "0 */6 * * *"
-    }
+    { "path": "/api/cron/check-deadlines",  "schedule": "0 2 * * *"   },
+    { "path": "/api/cron/resolve-votes",    "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/crawl-rss",        "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/crawl-youtube",    "schedule": "0 3 * * *"   }
   ]
 }
