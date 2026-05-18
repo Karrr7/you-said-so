@@ -16,7 +16,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const db = await createReadClient()
   const { data } = await db.from('predictions').select('content').eq('slug', slug).single()
-  return { title: data ? `「${data.content.slice(0, 30)}…」` : '找不到此預言' }
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://yousaidso.tw'
+  const title = data ? `「${data.content.slice(0, 30)}…」` : '找不到此預言'
+  const ogImageUrl = `${baseUrl}/api/og?slug=${slug}`
+  return {
+    title,
+    openGraph: {
+      title,
+      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [ogImageUrl],
+    },
+  }
 }
 
 export default async function PredictionDetailPage({ params }: Props) {
