@@ -5,6 +5,7 @@ import { createReadClient } from '@/lib/supabase'
 import { formatDeadline, scoreLabel } from '@/lib/utils'
 import type { Metadata } from 'next'
 import VoteBar from '@/components/VoteBar'
+import ShareButtons from '@/components/ShareButtons'
 
 export const revalidate = 3600
 
@@ -131,6 +132,14 @@ export default async function PredictionDetailPage({ params }: Props) {
           </div>
         </div>
       )}
+
+      {/* Share */}
+      <ShareButtons
+        url={`${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://yousaidso.tw'}/${locale}/predictions/${slug}`}
+        content={prediction.content}
+        predictorName={predictor.name}
+        verdict={prediction.verdict}
+      />
 
       {/* Sources */}
       {prediction.sources.length > 0 && (
