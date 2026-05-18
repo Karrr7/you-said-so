@@ -92,3 +92,13 @@ export interface VoteCounts {
   correct: number
   bullshit: number
 }
+
+export interface Source {
+  id: string
+  locale: Locale
+  type: 'rss' | 'youtube_channel'
+  name: string
+  url_or_channel_id: string
+  active: boolean
+  created_at: string
+}
